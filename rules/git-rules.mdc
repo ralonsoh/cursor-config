@@ -1,0 +1,21 @@
+---
+description: Git conventions and commit message rules
+alwaysApply: true
+---
+
+# Git Rules
+
+## Commit message trailers
+
+The last three lines of every commit message must be, in this exact order:
+
+```
+Assisted-By: <model name>
+Signed-off-by: <author from git-identity rule>
+Change-Id: <generated or preserved Change-Id>
+```
+
+- Use the author name and email defined in the `git-identity.mdc` rule for the `Signed-off-by` line.
+- Update the model name if the underlying model changes. Use the model name without the company name (e.g. `Claude Opus 4.6`, not `Anthropic Claude Opus 4.6`).
+- If amending an existing commit, preserve its original `Change-Id`.
+- NEVER add a `Co-authored-by` tag.
