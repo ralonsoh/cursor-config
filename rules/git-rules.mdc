@@ -19,3 +19,8 @@ Change-Id: <generated or preserved Change-Id>
 - Update the model name if the underlying model changes. Use the model name without the company name (e.g. `Claude Opus 4.6`, not `Anthropic Claude Opus 4.6`).
 - If amending an existing commit, preserve its original `Change-Id`.
 - NEVER add a `Co-authored-by` tag.
+
+## Commit message style
+
+- Wrap method, function, and variable names in double backticks (``` `` ```), e.g. ``_delete_port()``, ``ls_get()``.
+- The title may include a lowercase prefix followed by `:` to indicate the subsystem or area, e.g. `ovn:`, `dhcp:`, `l3:`, `ovs:`, `ml2:`. Only add a prefix when the change is scoped to a specific subsystem.
