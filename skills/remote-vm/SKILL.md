@@ -21,6 +21,20 @@ to discover available machines before connecting.
 Each entry has: `name`, `ip`, `user`, `password`, and an optional
 `description`.
 
+Example `vms.json`:
+
+```json
+[
+  {
+    "name": "u24ovn1",
+    "ip": "192.168.10.180",
+    "user": "stack",
+    "password": "stack",
+    "description": "Ubuntu 24, OVN backend"
+  },
+]
+```
+
 ## Connecting
 
 Use `sshpass` for password-based authentication. Wrap every remote command in
