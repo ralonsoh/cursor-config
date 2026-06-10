@@ -24,3 +24,29 @@ Change-Id: <generated or preserved Change-Id>
 
 - Wrap method, function, and variable names in double backticks (``` `` ```), e.g. ``_delete_port()``, ``ls_get()``.
 - The title may include a lowercase prefix followed by `:` to indicate the subsystem or area, e.g. `ovn:`, `dhcp:`, `l3:`, `ovs:`, `ml2:`. Only add a prefix when the change is scoped to a specific subsystem.
+
+## Commit via shell
+
+- Only create commits when the user explicitly asks.
+- Use `--author` from the `git-identity.mdc` rule.
+- Pass the message with a **quoted** heredoc so backticks are not stripped by bash command substitution:
+
+```bash
+git commit --author="Your Name <you@example.com>" -m "$(cat <<'EOF'
+doc: Document runtime ``uwsgi`` Python module in WSGI guide
+
+Explain that the ``uwsgi`` module is injected at runtime by the uWSGI
+server and is used by ``neutron.common.wsgi_utils`` for options such
+as ``start-time`` and ``uwsgi.worker_id()``.
+
+Assisted-By: Composer 2.5
+Signed-off-by: Your Name <you@example.com>
+Change-Id: I<generated-or-preserved>
+EOF
+)"
+```
+
+(`--author` and `Signed-off-by` must match the `git-identity.mdc` rule.)
+
+- Use `<<'EOF'` (quoted delimiter), not `<<EOF`. Unquoted heredocs treat `` `...` `` as command substitution and silently remove backticks from the message.
+- Generate `Change-Id` for new commits; preserve the original `Change-Id` when amending.
