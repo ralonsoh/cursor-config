@@ -7,7 +7,8 @@ alwaysApply: true
 
 ## Commit message trailers
 
-The last three lines of every commit message must be, in this exact order:
+Every commit message must end with a trailer block. The **mandatory** trailers
+are (in this relative order, always at the bottom):
 
 ```
 Assisted-By: <model name>
@@ -15,10 +16,39 @@ Signed-off-by: <author from git-identity rule>
 Change-Id: <generated or preserved Change-Id>
 ```
 
-- Use the author name and email defined in the `git-identity.mdc` rule for the `Signed-off-by` line.
+### Mandatory trailer rules
+
+- Add the git-identity `Signed-off-by` only when no other `Signed-off-by` already exists in the commit.
 - Update the model name if the underlying model changes. Use the model name without the company name (e.g. `Claude Opus 4.6`, not `Anthropic Claude Opus 4.6`).
-- If amending an existing commit, preserve its original `Change-Id`.
-- NEVER add a `Co-authored-by` tag.
+- `Change-Id` is always the very last line of the commit message.
+
+### Preserving existing trailers
+
+When amending or rewording a commit that already contains trailers, preserve them:
+
+- **Change-Id** — always keep the existing value; never regenerate it.
+- **Related-Bug:** — preserve any `Related-Bug: #...` references.
+- **Co-Authored-By** — preserve any existing `Co-Authored-By:` lines. (Do NOT add new ones.)
+- **Signed-off-by** — if the commit already has a `Signed-off-by:` from someone other than the git-identity author, preserve it and do **not** add the git-identity `Signed-off-by`. Only add the git-identity `Signed-off-by` when no other `Signed-off-by` is present.
+
+Place preserved trailers **above** `Assisted-By`. Lines marked
+`(optional)` appear only when the original commit had them:
+
+```
+Related-Bug: #<number>                          (optional)
+Assisted-By: <model name>
+Signed-off-by: Other Person <other@example.com> (if present, replaces git-identity SOB)
+Co-Authored-By: Name <email>                    (optional)
+Change-Id: I<preserved>
+```
+
+When no external `Signed-off-by` exists (the common case):
+
+```
+Assisted-By: <model name>
+Signed-off-by: <author from git-identity rule>
+Change-Id: I<generated or preserved>
+```
 
 ## Commit message style
 
