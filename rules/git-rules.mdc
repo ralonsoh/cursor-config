@@ -58,11 +58,12 @@ Change-Id: I<generated or preserved>
 ## Commit via shell
 
 - Only create commits when the user explicitly asks.
-- Use `--author` from the `git-identity.mdc` rule.
+- Use `--author` **and** `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` from the `git-identity.mdc` rule. Both author and committer must match to avoid Gerrit rejections.
 - Pass the message with a **quoted** heredoc so backticks are not stripped by bash command substitution:
 
 ```bash
-git commit --author="Your Name <you@example.com>" -m "$(cat <<'EOF'
+GIT_COMMITTER_NAME="Your Name" GIT_COMMITTER_EMAIL="you@example.com" \
+  git commit --author="Your Name <you@example.com>" -m "$(cat <<'EOF'
 doc: Document runtime ``uwsgi`` Python module in WSGI guide
 
 Explain that the ``uwsgi`` module is injected at runtime by the uWSGI
@@ -76,7 +77,7 @@ EOF
 )"
 ```
 
-(`--author` and `Signed-off-by` must match the `git-identity.mdc` rule.)
+(`--author`, committer env vars, and `Signed-off-by` must all match the `git-identity.mdc` rule.)
 
 - Use `<<'EOF'` (quoted delimiter), not `<<EOF`. Unquoted heredocs treat `` `...` `` as command substitution and silently remove backticks from the message.
 - Generate `Change-Id` for new commits; preserve the original `Change-Id` when amending.
