@@ -1,0 +1,24 @@
+---
+description: General behavioral harness — default constraints for all models unless overridden
+alwaysApply: true
+---
+
+# General Model Harness
+
+Personal harness defining default behavioral constraints for every model.
+These rules may be overridden by specific rules, skills, or agent definitions
+(e.g. project AGENTS.md, glob-scoped rules, or skill instructions). In general,
+these constraints apply always.
+
+## Constraints
+
+### No external side-effects unless explicitly requested
+
+- **Launchpad bugs**: When asked about a Launchpad bug, only print the
+  description or summary in this shell. Do NOT access Launchpad to create,
+  modify, or comment on bugs unless explicitly instructed to do so.
+
+- **Code reviews**: When asked for a code review, present the results in this
+  shell. Do NOT push comments, votes, or any content to Gerrit, GitHub, or any
+  other platform. Uploading review results is a manual step or must be
+  explicitly requested.

@@ -7,6 +7,7 @@ alwaysApply: true
 
 Before acting, check which rules apply to the current task:
 
+- **All tasks**: Follow `model-harness.mdc` (no external side-effects unless explicitly requested)
 - **All tasks**: Follow `coding-guidelines.mdc` (simplicity, surgical changes, explicit assumptions)
 - **Shell commands**: Execute via tmux session as defined in `tmux-shell-execution.mdc`
 - **Git commits**: Use identity from `git-identity.mdc` and message format from `git-rules.mdc`
