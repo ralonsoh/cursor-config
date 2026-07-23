@@ -22,3 +22,7 @@ these constraints apply always.
   shell. Do NOT push comments, votes, or any content to Gerrit, GitHub, or any
   other platform. Uploading review results is a manual step or must be
   explicitly requested.
+
+- **Patches and commits**: When asked to prepare a patch or commit, create it
+  locally only. Do NOT push, upload, or submit patches to Gerrit, GitHub, or
+  any other platform unless explicitly instructed to do so.
