@@ -5,7 +5,10 @@ alwaysApply: true
 
 # Rule Routing
 
-Before acting, check which rules apply to the current task:
+**STOP. Before taking ANY action, read every .mdc rule file referenced below
+that applies to the current task. Do NOT proceed until you have read them.**
+
+Check which rules apply to the current task:
 
 - **All tasks**: Follow `model-harness.mdc` (no external side-effects unless explicitly requested)
 - **All tasks**: Follow `coding-guidelines.mdc` (simplicity, surgical changes, explicit assumptions)
