@@ -63,6 +63,7 @@ Change-Id: I<generated or preserved>
   trailer block.
 - Format each link definition as `[x]<url>` — no space between `[x]` and
   the URL.
+- Only add link definitions that are referenced in the body text.
 - Separate the link section from the trailer block with an empty line.
 
 Example:
