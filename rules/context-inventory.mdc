@@ -1,5 +1,5 @@
 ---
-description: Print a short context inventory before any other output
+description: Print a short context inventory before any other output. Use when the user asks for a context inventory or @-mentions this rule.
 alwaysApply: false
 ---
 
@@ -8,29 +8,62 @@ alwaysApply: false
 The first user-visible output of every turn must be this block.
 Do not start the user's task until it is printed. Then continue; do not wait.
 
+## Sections
+
+Print **only** the sections listed below, in this order. Valid values:
+`rules`, `skills`, `agents`.
+
+A user request such as "only rules" overrides this list for the current turn.
+
+```
+sections:
+  - rules
+  - skills
+  - agents
+```
+
+To print a single section, keep only that value, for example:
+
+```
+sections:
+  - rules
+```
+
+## Content rules
+
 Names only. Do not dump bodies. Do not list the full built-in skill catalog.
 List every injected always-on rule. Do not list a name as WILL READ if it is
 already INJECTED.
 
-**Never omit a heading or a bullet.** Print the full template every turn,
-including `AVAILABLE`, `WILL READ`, `SCRIPTS`, and `WILL INVOKE`. Empty
-buckets must still appear, with `(none)` as the value. Do not drop a line
-because the bucket is empty or unused this turn.
-
 `AVAILABLE` rules: every workspace/user `.mdc` (and similar) rule that exists
 and is **not** already listed under `INJECTED`.
+
+**Never omit a heading or a bullet inside an enabled section.** Empty buckets
+must still appear, with `(none)` as the value. Do not print disabled sections.
+
+## Templates
+
+**rules**
 
 ```
 **Rules**
 - INJECTED: `a`, `b`
 - AVAILABLE: `c`
 - WILL READ: `d`
+```
 
+**skills**
+
+```
 **Skills / scripts**
 - AVAILABLE: `x`
 - WILL READ / USING: `y`
 - SCRIPTS: `path`
+```
 
+**agents**
+
+```
 **Agents**
 - AVAILABLE: `name`
 - WILL INVOKE: `type`
