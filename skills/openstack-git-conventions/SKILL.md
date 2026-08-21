@@ -1,9 +1,16 @@
 ---
-description: Git conventions and commit message rules
-alwaysApply: true
+name: openstack-git-conventions
+description: >-
+  Formats OpenStack git commit messages and creates commits using Gerrit
+  trailers, Change-Id, quoted heredocs, and the git-identity author. Use when
+  the user asks to commit, write a commit message, amend, reword, or run git
+  commit in an OpenStack/Gerrit repository.
 ---
 
-# Git Rules
+# OpenStack Git Conventions
+
+Read `rules/git-identity.mdc` for author and committer identity before
+creating a commit.
 
 ## Commit message trailers
 

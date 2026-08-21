@@ -1,0 +1,37 @@
+---
+description: Print a short context inventory before any other output
+alwaysApply: false
+---
+
+# Context inventory
+
+The first user-visible output of every turn must be this block.
+Do not start the user's task until it is printed. Then continue; do not wait.
+
+Names only. Do not dump bodies. Do not list the full built-in skill catalog.
+List every injected always-on rule. Do not list a name as WILL READ if it is
+already INJECTED.
+
+**Never omit a heading or a bullet.** Print the full template every turn,
+including `AVAILABLE`, `WILL READ`, `SCRIPTS`, and `WILL INVOKE`. Empty
+buckets must still appear, with `(none)` as the value. Do not drop a line
+because the bucket is empty or unused this turn.
+
+`AVAILABLE` rules: every workspace/user `.mdc` (and similar) rule that exists
+and is **not** already listed under `INJECTED`.
+
+```
+**Rules**
+- INJECTED: `a`, `b`
+- AVAILABLE: `c`
+- WILL READ: `d`
+
+**Skills / scripts**
+- AVAILABLE: `x`
+- WILL READ / USING: `y`
+- SCRIPTS: `path`
+
+**Agents**
+- AVAILABLE: `name`
+- WILL INVOKE: `type`
+```

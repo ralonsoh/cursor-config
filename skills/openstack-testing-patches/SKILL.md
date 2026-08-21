@@ -345,11 +345,11 @@ Use one of these title formats:
 ### Body (optional)
 
 If referencing another change or bug, add a link in the body following the
-link format from `git-rules.mdc`.
+link format from the `openstack-git-conventions` skill.
 
 ### Trailers
 
-Follow the `git-rules.mdc` rule for all trailer conventions (Assisted-By,
+Follow the `openstack-git-conventions` skill for all trailer conventions (Assisted-By,
 Signed-off-by, Change-Id, Related-Bug, etc.).
 
 ## Workflow Checklist
