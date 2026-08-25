@@ -76,7 +76,7 @@ definitions live there):
 - Use zero-padded two digits for N >= 10: `-01`, `-02`, ..., `-10`.
 - Use single digits for N < 10: `-1`, `-2`, ..., `-5`.
 
-### Example (N=10, job: neutron-tempest-plugin-ovn)
+### Example (N=5, job: neutron-tempest-plugin-ovn)
 
 ```yaml
 - job:
@@ -94,21 +94,6 @@ definitions live there):
 - job:
     name: neutron-tempest-plugin-ovn-05
     parent: neutron-tempest-plugin-ovn
-- job:
-    name: neutron-tempest-plugin-ovn-06
-    parent: neutron-tempest-plugin-ovn
-- job:
-    name: neutron-tempest-plugin-ovn-07
-    parent: neutron-tempest-plugin-ovn
-- job:
-    name: neutron-tempest-plugin-ovn-08
-    parent: neutron-tempest-plugin-ovn
-- job:
-    name: neutron-tempest-plugin-ovn-09
-    parent: neutron-tempest-plugin-ovn
-- job:
-    name: neutron-tempest-plugin-ovn-10
-    parent: neutron-tempest-plugin-ovn
 
 - project:
     check:
@@ -118,11 +103,6 @@ definitions live there):
         - neutron-tempest-plugin-ovn-03
         - neutron-tempest-plugin-ovn-04
         - neutron-tempest-plugin-ovn-05
-        - neutron-tempest-plugin-ovn-06
-        - neutron-tempest-plugin-ovn-07
-        - neutron-tempest-plugin-ovn-08
-        - neutron-tempest-plugin-ovn-09
-        - neutron-tempest-plugin-ovn-10
 ```
 
 ### Multiple parent jobs
