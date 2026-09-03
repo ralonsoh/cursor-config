@@ -2,9 +2,9 @@
 name: openstack-git-conventions
 description: >-
   Formats OpenStack git commit messages and creates commits using Gerrit
-  trailers, Change-Id, quoted heredocs, and the git-identity author. Use when
-  the user asks to commit, write a commit message, amend, reword, or run git
-  commit in an OpenStack/Gerrit repository.
+  trailers, Change-Id, 72-character line wrapping, quoted heredocs, and the
+  git-identity author. Use when the user asks to commit, write a commit
+  message, amend, reword, or run git commit in an OpenStack/Gerrit repository.
 ---
 
 # OpenStack Git Conventions
@@ -59,6 +59,9 @@ Change-Id: I<generated or preserved>
 
 ## Commit message style
 
+- Limit every line to 72 characters, including the title. Wrap body text at
+  word boundaries; break long bullet items and code references across lines
+  when needed.
 - Wrap method, function, and variable names in double backticks (``` `` ```), e.g. ``_delete_port()``, ``ls_get()``.
 - The title may include a lowercase prefix followed by `:` to indicate the subsystem or area, e.g. `ovn:`, `dhcp:`, `l3:`, `ovs:`, `ml2:`. Only add a prefix when the change is scoped to a specific subsystem.
 
