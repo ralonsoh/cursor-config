@@ -17,8 +17,8 @@ the reply.
 
 Read, then follow:
 
-- `rules/coding-guidelines.mdc`
-- `rules/openstack-code-style.mdc`
+- `rules/coding-guidelines.md`
+- `rules/openstack-code-style.md`
 
 These live in the cursor-config tree (symlinked as `~/.cursor/rules/`).
 
@@ -56,7 +56,7 @@ Search the repo root in this order; read each hit:
 If none of these exist, continue with the personal rules only.
 
 Project files override personal style where they conflict (for example a
-repo-specific test base class). `coding-guidelines.mdc` still applies for
+repo-specific test base class). `coding-guidelines.md` still applies for
 surgical diffs and no extra scope.
 
 ## 4. Do the work
@@ -65,7 +65,7 @@ surgical diffs and no extra scope.
 Gerrit unless the user explicitly asks.
 
 **Writing:** change only what the request requires. After Python edits, run
-`tox -epep8` from that repo root as required by `openstack-code-style.mdc`.
+`tox -epep8` from that repo root as required by `openstack-code-style.md`.
 Use `tox` or `stestr`, never `pytest`, when the project `AGENTS.md` says so.
 
 Do not commit unless the user asks. When they do, use `openstack-git-conventions`.

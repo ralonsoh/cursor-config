@@ -35,7 +35,7 @@ Names only. Do not dump bodies. Do not list the full built-in skill catalog.
 List every injected always-on rule. Do not list a name as WILL READ if it is
 already INJECTED.
 
-`AVAILABLE` rules: every workspace/user `.mdc` (and similar) rule that exists
+`AVAILABLE` rules: every workspace/user `.md` rule that exists
 and is **not** already listed under `INJECTED`.
 
 **Never omit a heading or a bullet inside an enabled section.** Empty buckets
