@@ -9,8 +9,8 @@ description: >-
 
 # OpenStack Git Conventions
 
-Read `rules/git-identity.mdc` for author and committer identity before
-creating a commit.
+Read `~/.cursor/rules/git-identity.mdc` for author and committer identity
+before creating a commit.
 
 ## Commit message trailers
 
@@ -96,7 +96,7 @@ Change-Id: I<generated-or-preserved>
 ## Commit via shell
 
 - Only create commits when the user explicitly asks.
-- Use `--author` **and** `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` from the `git-identity.mdc` rule. Both author and committer must match to avoid Gerrit rejections.
+- Use `--author` **and** `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` from `~/.cursor/rules/git-identity.mdc`. Both author and committer must match to avoid Gerrit rejections.
 - Pass the message with a **quoted** heredoc so backticks are not stripped by bash command substitution:
 
 ```bash
@@ -115,7 +115,7 @@ EOF
 )"
 ```
 
-(`--author`, committer env vars, and `Signed-off-by` must all match the `git-identity.mdc` rule.)
+(`--author`, committer env vars, and `Signed-off-by` must all match the `~/.cursor/rules/git-identity.mdc` rule.)
 
 - Use `<<'EOF'` (quoted delimiter), not `<<EOF`. Unquoted heredocs treat `` `...` `` as command substitution and silently remove backticks from the message.
 - Generate `Change-Id` for new commits; preserve the original `Change-Id` when amending.
