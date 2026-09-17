@@ -59,11 +59,9 @@ Change-Id: I<generated or preserved>
 
 ## Commit message style
 
-- Limit every line to 72 characters, including the title. Wrap body text at
-  word boundaries; break long bullet items and code references across lines
-  when needed.
 - Wrap method, function, and variable names in double backticks (``` `` ```), e.g. ``_delete_port()``, ``ls_get()``.
 - The title may include a lowercase prefix followed by `:` to indicate the subsystem or area, e.g. `ovn:`, `dhcp:`, `l3:`, `ovs:`, `ml2:`. Only add a prefix when the change is scoped to a specific subsystem.
+- Limit every line to 72 characters, including the title. Wrap body text at word boundaries; break long bullet items and code references across lines when needed.
 
 ## Commit message links
 
