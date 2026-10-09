@@ -1,4 +1,13 @@
-# Zuul Builds Query Skill
+---
+name: zuul-builds-query
+description: >-
+  Query the Zuul CI API for job executions with filtering by branch,
+  pipeline, result, change, and start time. Use when the user asks to
+  check Zuul build status, query CI results, investigate job executions,
+  or look up build history on zuul.opendev.org.
+---
+
+# Zuul Builds Query
 
 Query the Zuul CI API for job executions with filtering by branch, pipeline, result, change, and start time.
 
