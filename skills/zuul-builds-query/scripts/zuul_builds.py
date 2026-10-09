@@ -27,7 +27,7 @@ import time
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 
 # Default Zuul instance
@@ -67,16 +67,19 @@ class ZuulClient:
                 req.add_header("Accept", "application/json")
                 with urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
                     data = resp.read().decode("utf-8")
-                    # Check for HTTP error codes
-                    if resp.status >= 400:
-                        if resp.status == 500:
-                            raise ZuulAPIError(
-                                f"Server error 500 at skip={url.split('skip=')[1].split('&')[0] if 'skip=' in url else 'unknown'}"
-                            )
-                        raise ZuulAPIError(
-                            f"HTTP {resp.status}: {data[:200]}"
-                        )
-                    return json.loads(data)
+                return json.loads(data)
+            except HTTPError as e:
+                # urlopen() raises HTTPError for 4xx/5xx responses.
+                if e.code == 500 and attempt < retries - 1:
+                    # Deep pagination can return transient 500s; retry.
+                    time.sleep(RETRY_DELAY * (attempt + 1))
+                    continue
+                if e.code == 500:
+                    skip = (url.split('skip=')[1].split('&')[0]
+                            if 'skip=' in url else 'unknown')
+                    raise ZuulAPIError(f"Server error 500 at skip={skip}")
+                body = e.read().decode("utf-8", errors="replace")[:200]
+                raise ZuulAPIError(f"HTTP {e.code}: {body}")
             except (URLError, TimeoutError, OSError) as e:
                 if attempt < retries - 1:
                     time.sleep(RETRY_DELAY * (attempt + 1))
