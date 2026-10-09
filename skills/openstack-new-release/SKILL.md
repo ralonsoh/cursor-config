@@ -162,13 +162,19 @@ $ git log --oneline --no-merges <prev_tag>..<short_hash>
 
 Use the short hash (7 chars) in the command line, as in real release commits.
 
-**OpenStack commit trailer:**
+**Commit trailers:** follow the `openstack-git-conventions` skill. The
+mandatory trailers, in order, are:
 
 ```
-Signed-off-by: <Name> <email>
+Assisted-By: <model name>
+Signed-off-by: <author from git-identity rule>
+Change-Id: I<generated>
 ```
 
-Get name/email from `git config user.name` and `git config user.email` in the releases repo.
+Get the author name/email from `~/.cursor/rules/git-identity.md` (not from
+the releases repo's `git config`), and use the same identity for both the
+`--author` flag and the `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL`
+environment variables.
 
 **Example full commit message:**
 
@@ -180,7 +186,9 @@ f7a9e8a5 Document ML2 VLAN tri-state capability behavior
 9810f963 Add default __mapper_args__ to BASEV2 declarative base
 ...
 
+Assisted-By: <model name>
 Signed-off-by: Rodolfo Alonso Hernandez <ralonsoh@redhat.com>
+Change-Id: I<generated>
 ```
 
 After committing, show `git diff HEAD~1` and `git status` so the user can review before pushing to Gerrit.
