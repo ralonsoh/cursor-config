@@ -29,15 +29,14 @@ This skill provides JIRA management capabilities including:
 
 ## Prerequisites
 
-It is needed to configure the Jira MCP server in the Claude configuration. For example, under `~/.claude/settings.json`.
+It is needed to configure the Jira MCP server in the Cursor configuration,
+under `~/.cursor/mcp.json`.
 
 The configuration parameters are:
 ```json
 {
-...
   "mcpServers": {
     "jira_rh": {
-      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
@@ -46,11 +45,10 @@ The configuration parameters are:
       "env": {
         "JIRA_URL": "https://issues.redhat.com",
         "JIRA_USERNAME": "<your Jira user>",
-        "JIRA_API_TOKEN": "<your token for Claude>"
+        "JIRA_API_TOKEN": "<your Jira API token>"
       }
     }
   }
-...
 }
 ```
 
