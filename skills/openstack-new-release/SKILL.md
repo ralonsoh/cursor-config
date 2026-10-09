@@ -28,7 +28,9 @@ If either is missing, ask for it.
 - Local clone of the releases repo (default: `/opt/stack/releases`)
 - Local clone of the project repo (default: `/opt/stack/<project>`)
 - Both repos on up-to-date branches (`git fetch`)
-- If the required project is not in the current workspace, ask to add it
+- If the project repo is not cloned locally, tell the user and ask for the
+  local path (or offer to clone it from the `repo:` field in the deliverable
+  YAML). Do not proceed until the repo is available.
 
 ## Workflow
 
