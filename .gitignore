@@ -1,4 +1,9 @@
 ## Secrets
 skills/remote-vm/vms.json
 rules/git-identity.mdc
+llm-proxy/config.toml
+
+## Python
+__pycache__/
+*.py[cod]
 

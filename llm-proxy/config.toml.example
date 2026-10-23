@@ -1,0 +1,48 @@
+# Effort-injection proxy configuration (example).
+#
+# Copy this file to `config.toml` and fill in your own values:
+#
+#     cp config.toml.example config.toml
+#
+# `config.toml` is git-ignored on purpose: it holds the real gateway URL.
+# Point Cursor's openAIBaseUrl at http://127.0.0.1:8787/v1.
+
+listen_host = "127.0.0.1"
+listen_port = 8787
+
+# Required. Base URL of the OpenAI-compatible gateway to forward to,
+# e.g. "https://gateway.example.com/v1". Can also be set with --upstream.
+upstream = "https://gateway.example.com/v1"
+
+timeout = 600
+log = true
+
+# Upstream credential. The proxy replaces any Authorization header sent by
+# the client with this value, so Cursor never needs to hold the real key.
+# Keep the real key in `config.toml`, which is git-ignored.
+api_key = "sk-replace-me"
+
+# Override for gateways that use a different auth header or scheme.
+# api_key_header = "Authorization"
+# api_key_prefix = "Bearer"
+
+# Rules are evaluated top to bottom; the first `match` hit wins.
+# `match` is a regular expression tested against the request's `model` field.
+# `param` may be dotted (e.g. "output_config.effort") for Anthropic-style APIs.
+# Existing values are preserved unless `force = true`.
+
+[[rules]]
+match = "^vendor/model-a$"
+param = "reasoning_effort"
+value = "high"
+
+[[rules]]
+match = "^vendor/model-b$"
+param = "reasoning_effort"
+value = "high"
+
+# Fallback for any other model the gateway serves.
+[[rules]]
+match = ".*"
+param = "reasoning_effort"
+value = "medium"
