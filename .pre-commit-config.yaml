@@ -1,0 +1,15 @@
+# Secret scanning before each commit.
+#
+# Install the hook once per clone:
+#
+#     pre-commit install
+#
+# The `gitleaks` hook is built from source by pre-commit (`language:
+# golang`), so a Go toolchain must be on PATH. If you prefer a prebuilt
+# binary, install gitleaks yourself and swap the id to `gitleaks-system`.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      # Scans staged content only; history-wide scans belong in CI.
+      - id: gitleaks

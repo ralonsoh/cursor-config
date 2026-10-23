@@ -17,6 +17,30 @@ rules/
 skills/
 ```
 
+## Pre-commit hook
+
+`.pre-commit-config.yaml` runs
+[gitleaks](https://github.com/gitleaks/gitleaks) over the staged
+content of every commit, so an accidentally committed credential is
+rejected before it enters history.
+
+Enable it once per clone:
+
+```bash
+pre-commit install
+```
+
+The `gitleaks` hook is compiled from source by pre-commit, which
+provisions its own Go toolchain — no local Go install is required. To
+run the checks manually against the staged files:
+
+```bash
+pre-commit run
+```
+
+`git commit --no-verify` bypasses the hook. A history-wide scan belongs
+in CI, where it cannot be skipped.
+
 ## Secrets
 
 `skills/remote-vm/vms.json` contains VM credentials and is excluded from
