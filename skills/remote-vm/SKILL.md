@@ -149,6 +149,25 @@ default keys). Omit `-J <jump_host>` when there is no jump host.
 - Replace `<REMOTE_COMMAND>` with the actual command (escape inner single quotes).
 - For fast checks use `seq 1 10`; for OpenStack/devstack use `seq 1 300` and
   matching `block_until_ms`.
+
+## Non-blocking execution (do NOT wait the full timeout)
+
+Never size `block_until_ms` to the worst case and block on it. The wrapper
+already streams all output through `tee` to the local shell stdout and appends
+a `__CURSOR_DONE__` marker when the remote command finishes. Use it:
+
+1. Launch the SSH wrapper with `block_until_ms: 0` so it goes to the
+   background immediately (note the returned shell id).
+2. Call `AwaitShell` with that shell id and `pattern: __CURSOR_DONE__`, with
+   `block_until_ms` sized to the expected runtime. It returns as soon as the
+   marker appears in the output — a command finishing in seconds returns in
+   seconds, not after the full polling budget.
+3. Read the command output from the AwaitShell result, or Read the local
+   mirror file `/tmp/.cursor-vm-out` once the job is done.
+
+If `AwaitShell` returns without the marker, the remote command is still
+running; either poll again or finish the turn and rely on the end-of-turn
+job-completion notification, then read `/tmp/.cursor-vm-out`.
 - Mask passwords when showing commands to the user.
 
 ### File transfers
