@@ -6,7 +6,8 @@ description: >-
   debug OpenStack on OpenShift, inspect OCP cluster nodes, check OpenStack
   operators or services, patch the OpenStackControlPlane, test code in
   RHOSO, mount code into an OpenStack pod, create an NFS share for a
-  service, or mentions RHOSO, RHOSO 18, baremetal cluster, or OCP OpenStack.
+  service, retrieve or change a pod container image, or mentions RHOSO,
+  RHOSO 18, baremetal cluster, or OCP OpenStack.
 ---
 
 # RHOSO 18.0 Environment Operations
@@ -22,6 +23,9 @@ Determine what the user needs, then read **only** the matching subskill:
 - **Test local code changes live in a service pod** (NFS share, PV/PVC,
   extraMounts) →
   Read [rhoso-code/SKILL.md](rhoso-code/SKILL.md)
+- **Retrieve the image a pod is running or change a service container
+  image** (pod images, `containerImage`, image rollout) →
+  Read [rhoso-openstack-image/SKILL.md](rhoso-openstack-image/SKILL.md)
 
 Subskills may be run in sequence: code testing requires environment
 access first (rhoso-access), and rhoso-code says so in its prerequisites.
