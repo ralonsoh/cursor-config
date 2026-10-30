@@ -16,7 +16,8 @@ Based on the [upstream dev-docs guide](https://github.com/openstack-k8s-operator
 
 ## Prerequisites
 
-- Follow the `rhoso-debug` skill to access the RHOSO controller and
+- Follow the `rhoso-access` subskill ([rhoso-access/SKILL.md](../rhoso-access/SKILL.md),
+  sibling directory of this skill) to access the RHOSO controller and
   log into OpenShift (`oc login`).
 - The code directory to mount must exist on the controller (or on a
   host reachable via NFS from all OCP nodes).
@@ -160,7 +161,7 @@ oc exec $(oc get pods -n openstack -l service=${SERVICE} -o name | head -1) -n o
 
 ```
 Task Progress:
-- [ ] Access RHOSO controller and oc login (rhoso-debug skill)
+- [ ] Access RHOSO controller and oc login (rhoso-access subskill)
 - [ ] Collect variables (SERVICE, CODE_PATH, NFS_SERVER, etc.)
 - [ ] Export NFS share and reload exports
 - [ ] Start nfs-server and firewalld; add nft rule if needed
