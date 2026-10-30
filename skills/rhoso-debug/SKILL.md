@@ -6,8 +6,9 @@ description: >-
   debug OpenStack on OpenShift, inspect OCP cluster nodes, check OpenStack
   operators or services, patch the OpenStackControlPlane, test code in
   RHOSO, mount code into an OpenStack pod, create an NFS share for a
-  service, retrieve or change a pod container image, or mentions RHOSO,
-  RHOSO 18, baremetal cluster, or OCP OpenStack.
+  service, retrieve or change a pod container image, collect or analyze a
+  must-gather, debug the control plane or the EDPM data plane nodes, or
+  mentions RHOSO, RHOSO 18, baremetal cluster, or OCP OpenStack.
 ---
 
 # RHOSO 18.0 Environment Operations
@@ -26,6 +27,15 @@ Determine what the user needs, then read **only** the matching subskill:
 - **Retrieve the image a pod is running or change a service container
   image** (pod images, `containerImage`, image rollout) →
   Read [rhoso-openstack-image/SKILL.md](rhoso-openstack-image/SKILL.md)
+- **Debug the control plane** (OSCP not Ready, service CR conditions,
+  operator health, crashing pods, MariaDB/RabbitMQ/Keystone/OVN debugging) →
+  Read [rhoso-ctlplane-debug/SKILL.md](rhoso-ctlplane-debug/SKILL.md)
+- **Debug the data plane / EDPM nodes** (dataplane deployments, AnsibleEE
+  jobs, node SSH access, on-node containers, ansible tags/limits re-runs) →
+  Read [rhoso-edpm-debug/SKILL.md](rhoso-edpm-debug/SKILL.md)
+- **Collect or analyze a must-gather** (full environment snapshot, SOS
+  reports, database dumps, omc analysis) →
+  Read [rhoso-must-gather/SKILL.md](rhoso-must-gather/SKILL.md)
 
 Subskills may be run in sequence: code testing requires environment
 access first (rhoso-access), and rhoso-code says so in its prerequisites.
