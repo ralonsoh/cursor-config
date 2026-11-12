@@ -2,10 +2,11 @@
 name: remote-vm-config
 description: >-
   Set up a freshly created remote VM for development work: virtiofs shared
-  directory access with host UID matching, X11 tools, SSH key-based login for
-  root and a non-root user, sshd X11 forwarding and password authentication,
-  passwordless sudo, and swap disabling. Use when the user asks to prepare,
-  configure, or bootstrap a new VM from the remote-vm inventory.
+  directory access with host UID matching, tmux with mouse support, X11
+  tools, SSH key-based login for root and a non-root user, sshd X11
+  forwarding and password authentication, passwordless sudo, and swap
+  disabling. Use when the user asks to prepare, configure, or bootstrap a
+  new VM from the remote-vm inventory.
 ---
 
 # Remote VM Configuration
@@ -27,12 +28,13 @@ Checklist:
 
 ```
 - [ ] 1. Shared directory (virtiofs) mounted and accessible
-- [ ] 2. X11 tools installed
-- [ ] 3. SSH public key login for stack and root
-- [ ] 4. sshd: X11 forwarding + password authentication
-- [ ] 5. Passwordless sudo for stack
-- [ ] 6. Home directory traversable (755)
-- [ ] 7. Swap disabled
+- [ ] 2. tmux installed with mouse support
+- [ ] 3. X11 tools installed
+- [ ] 4. SSH public key login for stack and root
+- [ ] 5. sshd: X11 forwarding + password authentication
+- [ ] 6. Passwordless sudo for stack
+- [ ] 7. Home directory traversable (755)
+- [ ] 8. Swap disabled
 ```
 
 ## 1. Shared directory (virtiofs)
@@ -83,7 +85,37 @@ it refuses while the user owns running processes.
 Verify: `head /opt/stack/neutron/setup.cfg` works and
 `echo test > /opt/stack/.write-test && rm /opt/stack/.write-test` succeeds.
 
-## 2. X11 tools
+## 2. tmux with mouse support
+
+The remote-vm skill drives the VM through a tmux session, and the user
+interactively attaches to it. Enable mouse support so that selecting
+with the mouse and scrolling work as expected (see the notes on
+copy/paste below).
+
+```bash
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tmux
+sudo tee /etc/tmux.conf > /dev/null <<'EOF'
+set -g mouse on
+set -g set-clipboard external
+EOF
+```
+
+**Why `/etc/tmux.conf` (system-wide) instead of `~/.tmux.conf`:** the
+setup is per-VM, not per-user. The `remote-vm` skill runs tmux as the
+`stack` user, but interactive sessions often run under `root` too
+(separate tmux servers); a system-wide config covers both without
+needing per-user copies.
+
+**Copy/paste behavior with `mouse on`:** dragging with the left button
+creates a tmux selection, and releasing the mouse copies it to the
+system clipboard via OSC 52 (works over SSH, no X11/agent needed).
+Pressing `Ctrl+Shift+C` after a tmux drag does NOT copy — the terminal
+has no selection, so the key falls through to the application as
+`Ctrl+C` (it can kill htop and friends). To get a plain terminal
+selection copied with `Ctrl+Shift+C`, hold `Shift` while dragging to
+bypass tmux mouse handling.
+
+## 3. X11 tools
 
 ```bash
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -95,7 +127,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
 without them). Check any failing app with
 `ldd <binary> | grep "not found"`.
 
-## 3. SSH key-based login
+## 4. SSH key-based login
 
 **Always ask the user for the public key to install** — never guess or reuse
 one without confirmation.
@@ -120,7 +152,7 @@ ssh -o PasswordAuthentication=no stack@<ip> 'whoami'
 ssh -o PasswordAuthentication=no root@<ip> 'whoami'
 ```
 
-## 4. sshd configuration
+## 5. sshd configuration
 
 ```bash
 printf 'X11Forwarding yes\nPasswordAuthentication yes\n' | \
@@ -135,7 +167,7 @@ with password is requested, also set `PermitRootLogin yes` in the drop-in,
 set the root password (`echo 'root:<pw>' | sudo chpasswd` — root is locked
 by default on Ubuntu), and ask the user what password to use.
 
-## 5. Passwordless sudo
+## 6. Passwordless sudo
 
 ```bash
 printf 'stack ALL=(ALL) NOPASSWD:ALL\n' | \
@@ -144,7 +176,7 @@ sudo chmod 440 /etc/sudoers.d/stack
 sudo visudo -c   # must report "parsed OK"
 ```
 
-## 6. Home directory traversable (755)
+## 7. Home directory traversable (755)
 
 The non-root user's home must be world-traversable, especially when devstack
 puts the global venv under it (`DATA_DIR=/home/<user>/...`):
@@ -171,7 +203,7 @@ Verify:
 sudo -u www-data ls /home/stack/data/venv/bin/python
 ```
 
-## 7. Disable swap
+## 8. Disable swap
 
 Development workloads (e.g. DevStack, OVN) expect no swap. Disable it now
 and comment out the fstab entry so it does not come back on reboot:
