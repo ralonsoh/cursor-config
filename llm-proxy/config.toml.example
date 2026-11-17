@@ -30,19 +30,29 @@ api_key = "sk-replace-me"
 # `match` is a regular expression tested against the request's `model` field.
 # `param` may be dotted (e.g. "output_config.effort") for Anthropic-style APIs.
 # Existing values are preserved unless `force = true`.
+# `model` rewrites the request's model to the given name.
+# `default = true` marks this rule's model as the default: requests whose
+# model matches no rule (or carry no model at all) are routed to it instead
+# of leaving the choice to the gateway. The rule's model is its `model` when
+# given, else its literal `match` (which must then be a plain model name,
+# not a regex). The first default rule wins. Without any default rule, the
+# model field is left untouched (current behaviour).
 
 [[rules]]
 match = "^vendor/model-a$"
 param = "reasoning_effort"
 value = "high"
+default = true
 
 [[rules]]
 match = "^vendor/model-b$"
 param = "reasoning_effort"
 value = "high"
 
-# Fallback for any other model the gateway serves.
+# Fallback for any other model the gateway serves. It is NOT the default:
+# only a rule with default = true receives unmatched-model requests.
 [[rules]]
 match = ".*"
 param = "reasoning_effort"
 value = "medium"
+
