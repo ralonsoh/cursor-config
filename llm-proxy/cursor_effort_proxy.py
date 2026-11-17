@@ -8,6 +8,11 @@ parameter and no picker control.
 This proxy sits between Cursor and the real gateway and injects the effort
 parameter into the request body, so effort becomes a proxy-side decision.
 
+A rule marked `default = true` names the default model: requests whose
+model matches no rule (or carry no model at all) are routed to it, instead
+of letting the gateway pick one. Without any default rule the model field
+is left untouched.
+
 Usage:
     ./cursor_effort_proxy.py --config config.toml
     ./cursor_effort_proxy.py --upstream https://host/v1 --effort high
@@ -43,12 +48,25 @@ HOP_BY_HOP = {
 
 @dataclass
 class Rule:
-    """One model-ID pattern and the parameter it should carry."""
+    """One model-ID pattern, the parameter it should carry, and where
+    matching requests should be routed."""
 
     match: re.Pattern[str]
     param: str
     value: str
     force: bool = False
+    # When set, matching requests have their `model` field rewritten to this
+    # name before forwarding.
+    model: str = ""
+    # When true, this rule names the default model used for requests whose
+    # model matches no rule (or that carry no model at all). The rule's model
+    # is its `model` when given, else its literal `match` pattern (which must
+    # then be a plain model name, not a regex). The first default rule wins.
+    default: bool = False
+
+    def resolved_model(self) -> str:
+        """The model name this rule routes to, "" when it does not rewrite."""
+        return self.model or (self.match.pattern if self.default else "")
 
 
 @dataclass
@@ -61,6 +79,9 @@ class Config:
     timeout: int = 600
     log: bool = True
     rules: list[Rule] = field(default_factory=list)
+    # Model name of the first rule with default = true; "" when none is
+    # configured.
+    default_model: str = ""
     # Credentials are resolved once at startup and never logged. `api_key`
     # holds the literal value read from the config file; the file itself is
     # git-ignored, so the secret is never committed.
@@ -97,33 +118,73 @@ def _set_path(obj: dict[str, Any], dotted: str, value: Any) -> None:
     cur[parts[-1]] = value
 
 
-def transform(body: bytes, rules: list[Rule]) -> tuple[bytes, str | None]:
-    """Return (possibly rewritten body, log note)."""
+def _model_headers(model: str) -> dict[str, str]:
+    """Headers telling the upstream which model to use, for clients that
+    signal the model out-of-band (e.g. Cursor's x-cursor-model)."""
+    return {
+        "x-cursor-model": model,
+        "x-cursor-model-classic": model,
+    }
+
+
+def transform(
+    body: bytes, rules: list[Rule], default_model: str = ""
+) -> tuple[bytes, str | None, dict[str, str]]:
+    """Return (possibly rewritten body, log note, headers to inject).
+
+    Headers are returned only when the model is rewritten: they carry the
+    new model name so out-of-band model signalling (Cursor's
+    x-cursor-model headers) follows the same routing as the body.
+    """
     if not body:
-        return body, None
+        return body, None, {}
     try:
         data = json.loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError):
-        return body, None
+        return body, None, {}
     if not isinstance(data, dict):
-        return body, None
+        return body, None, {}
 
     model = data.get("model")
     # Skip when absent or empty: a catch-all rule would otherwise inject into
-    # requests that have no model (and `.*` matches the empty string).
+    # requests that have no model (and `.*` matches the empty string). The
+    # model is still set to the default one, when configured.
     if not isinstance(model, str) or not model:
-        return body, None
+        if default_model:
+            data["model"] = default_model
+            return (
+                json.dumps(data).encode(),
+                f"<no model>: routed to default model {default_model}",
+                _model_headers(default_model),
+            )
+        return body, None, {}
 
     for rule in rules:
         if not rule.match.search(model):
             continue
+        notes = []
+        headers = {}
+        if rule.model and rule.model != model:
+            data["model"] = rule.model
+            headers = _model_headers(rule.model)
+            notes.append(f"model {model} -> {rule.model}")
         existing = _get_path(data, rule.param)
         if existing is not None and not rule.force:
-            return body, f"{model}: {rule.param} already {existing!r}, left alone"
-        _set_path(data, rule.param, rule.value)
-        return json.dumps(data).encode(), f"{model}: injected {rule.param}={rule.value}"
+            notes.append(f"{rule.param} already {existing!r}, left alone")
+        else:
+            _set_path(data, rule.param, rule.value)
+            notes.append(f"injected {rule.param}={rule.value}")
+        return json.dumps(data).encode(), f"{model}: " + ", ".join(notes), headers
 
-    return body, None
+    if default_model:
+        data["model"] = default_model
+        return (
+            json.dumps(data).encode(),
+            f"{model}: no rule matched, routed to default model {default_model}",
+            _model_headers(default_model),
+        )
+
+    return body, None, {}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -180,8 +241,11 @@ class Handler(BaseHTTPRequestHandler):
     def _forward(self, method: str) -> None:
         body = self._read_body() if method in ("POST", "PUT", "DELETE") else b""
 
+        extra_headers: dict[str, str] = {}
         if body:
-            body, note = transform(body, self.cfg.rules)
+            body, note, extra_headers = transform(
+                body, self.cfg.rules, self.cfg.default_model
+            )
             if note:
                 self._note(note)
 
@@ -209,6 +273,12 @@ class Handler(BaseHTTPRequestHandler):
             headers["Content-Length"] = str(len(body))
         else:
             headers.pop("Content-Length", None)
+        # Model-routing headers from `transform`, e.g. when the request had
+        # no model and a default model was configured. They override any
+        # client-supplied versions of the same headers.
+        for key, val in extra_headers.items():
+            headers = {k: v for k, v in headers.items() if k.lower() != key.lower()}
+            headers[key] = val
         headers["Host"] = url.netloc
 
         if url.scheme == "https":
@@ -279,14 +349,17 @@ def load_config(path: str | None, upstream: str | None, effort: str | None) -> C
         cfg.api_key_header = str(raw.get("api_key_header", cfg.api_key_header))
         cfg.api_key_prefix = str(raw.get("api_key_prefix", cfg.api_key_prefix))
         for entry in raw.get("rules", []):
-            cfg.rules.append(
-                Rule(
-                    match=re.compile(entry["match"]),
-                    param=entry.get("param", "reasoning_effort"),
-                    value=str(entry["value"]),
-                    force=bool(entry.get("force", False)),
-                )
+            rule = Rule(
+                match=re.compile(entry["match"]),
+                param=entry.get("param", "reasoning_effort"),
+                value=str(entry["value"]),
+                force=bool(entry.get("force", False)),
+                model=str(entry.get("model", "")),
+                default=bool(entry.get("default", False)),
             )
+            cfg.rules.append(rule)
+            if rule.default and not cfg.default_model:
+                cfg.default_model = rule.resolved_model()
 
     if upstream:
         cfg.upstream = upstream
@@ -328,6 +401,14 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write("error: no rules configured\n")
         return 2
 
+    for rule in cfg.rules:
+        if rule.default and not rule.resolved_model():
+            sys.stderr.write(
+                f"error: rule {rule.match.pattern!r} has default = true"
+                " but no `model` to route to\n"
+            )
+            return 2
+
     if not cfg.upstream:
         # Keep the gateway URL out of committed source: it must be configured.
         sys.stderr.write(
@@ -354,7 +435,13 @@ def main(argv: list[str] | None = None) -> int:
     for rule in cfg.rules:
         sys.stderr.write(
             f"[proxy]   {rule.match.pattern} -> {rule.param}={rule.value}"
-            f"{' (force)' if rule.force else ''}\n"
+            f"{' (force)' if rule.force else ''}"
+            f"{' (default model)' if rule.default else ''}\n"
+        )
+    if cfg.default_model:
+        sys.stderr.write(
+            f"[proxy]   unmatched models route to default model"
+            f" {cfg.default_model}\n"
         )
     sys.stderr.flush()
 
