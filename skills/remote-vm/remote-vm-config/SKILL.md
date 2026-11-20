@@ -11,8 +11,9 @@ description: >-
 
 # Remote VM Configuration
 
-One-time setup of a new VM from the [remote-vm](../remote-vm/SKILL.md)
-inventory. Run all commands via the remote-vm tmux-on-VM pattern.
+One-time setup of a new VM from the [remote-vm](../SKILL.md) inventory.
+Run all commands via the [remote-vm-access](../remote-vm-access/SKILL.md)
+tmux-on-VM pattern.
 
 The non-root user `stack` is a convention, not a requirement. **Confirm with
 the user, or check what non-root users exist in the VM, before assuming
@@ -87,7 +88,7 @@ Verify: `head /opt/stack/neutron/setup.cfg` works and
 
 ## 2. tmux with mouse support
 
-The remote-vm skill drives the VM through a tmux session, and the user
+The remote-vm-access skill drives the VM through a tmux session, and the user
 interactively attaches to it. Enable mouse support so that selecting
 with the mouse and scrolling work as expected (see the notes on
 copy/paste below).
@@ -101,7 +102,7 @@ EOF
 ```
 
 **Why `/etc/tmux.conf` (system-wide) instead of `~/.tmux.conf`:** the
-setup is per-VM, not per-user. The `remote-vm` skill runs tmux as the
+setup is per-VM, not per-user. The `remote-vm-access` skill runs tmux as the
 `stack` user, but interactive sessions often run under `root` too
 (separate tmux servers); a system-wide config covers both without
 needing per-user copies.

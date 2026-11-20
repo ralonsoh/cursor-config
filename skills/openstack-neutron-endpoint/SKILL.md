@@ -15,8 +15,8 @@ that talks to Neutron so they pick up the new URL.
 
 ## Prerequisites
 
-Read the [remote-vm skill](../remote-vm/SKILL.md) for SSH/tmux connection
-details and VM inventory.
+Read the [remote-vm-access skill](../remote-vm/remote-vm-access/SKILL.md)
+for SSH/tmux connection details and VM inventory.
 
 ## Endpoint modes
 
