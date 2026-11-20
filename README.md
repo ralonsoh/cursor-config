@@ -15,7 +15,55 @@ ln -sf /opt/ralonsoh/cursor-config/skills ~/.cursor/skills
 ```
 rules/
 skills/
+llm-proxy/
 ```
+
+## Gemini web proxy
+
+There is no API key for the consumer Gemini tiers, so `llm-proxy/
+gemini_web_proxy.py` reuses a browser session instead: it takes the
+`__Secure-1PSID` cookie of an account signed in to `gemini.google.com` and
+exposes `/v1/chat/completions`, which Cursor's `openAIBaseUrl` understands.
+
+```bash
+cd llm-proxy
+python3 -m venv .venv
+.venv/bin/pip install gemini-webapi
+cp config.gemini.toml.example config.gemini.toml   # paste cookies here
+.venv/bin/python gemini_web_proxy.py --config config.gemini.toml --check
+.venv/bin/python gemini_web_proxy.py --config config.gemini.toml
+```
+
+`--check` prints the models the account offers and exits; use it to confirm
+the cookie works before pointing Cursor at the proxy. Requests that hit an
+unauthenticated session fail immediately with a 401 instead of connecting.
+
+To keep the effort-injection proxy in front of it, chain the two:
+
+```
+Cursor -> :8787 cursor_effort_proxy.py -> :6969 gemini_web_proxy.py
+```
+
+```bash
+cp config.chain.toml.example config.chain.toml
+python3 cursor_effort_proxy.py --config config.chain.toml
+```
+
+Then in Cursor's custom OpenAI-compatible settings:
+
+- Base URL: `http://127.0.0.1:8787/v1`
+- API key: any non-empty string — the Gemini proxy authenticates with cookies
+
+Limitations of driving the web UI:
+
+- The web UI has no function calling. `tool_mode = "prompt"` emulates one
+  call per reply by prompting for JSON and parsing it back out, which means
+  every reply is buffered and cannot stream. Expect degraded agent mode.
+- The library rotates `__Secure-1PSIDTS`, which can sign the same account out
+  of a browser used elsewhere. Use a dedicated Google account, and treat
+  `config.gemini.toml` as a password.
+- Rotated cookies are cached in `~/.cache/gemini-webkit-proxy` with mode 0700.
+
 
 ## Pre-commit hook
 

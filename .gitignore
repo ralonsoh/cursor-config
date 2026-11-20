@@ -2,6 +2,8 @@
 skills/remote-vm/vms.json
 rules/git-identity.mdc
 llm-proxy/config.toml
+llm-proxy/config.gemini.toml
+llm-proxy/config.chain.toml
 
 ## Python
 __pycache__/

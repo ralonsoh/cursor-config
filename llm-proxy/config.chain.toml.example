@@ -1,0 +1,35 @@
+# Chained effort-proxy configuration (example).
+#
+# Cursor -> cursor_effort_proxy.py -> gemini_web_proxy.py -> gemini.google.com
+#
+# Copy this file to `config.chain.toml` and point Cursor's `openAIBaseUrl` at
+# http://127.0.0.1:8787/v1:
+#
+#     cp config.chain.toml.example config.chain.toml
+#
+# This file is git-ignored only for symmetry with config.toml; it holds no
+# secret. Do NOT reuse config.toml here: its `default = true` rule rewrites
+# every model to the gateway's model, which would hijack Gemini requests.
+
+listen_host = "127.0.0.1"
+listen_port = 8787
+
+# The local Gemini proxy. No path on purpose: cursor_effort_proxy.py appends
+# the client's path to this base, so a trailing `/v1` would yield
+# `/v1/v1/chat/completions`.
+upstream = "http://127.0.0.1:6969"
+
+timeout = 600
+log = true
+
+# No credential: gemini_web_proxy.py authenticates with cookies from its own
+# config file, and forwards nothing from the client.
+api_key = ""
+
+# Rules are evaluated top to bottom; the first `match` hit wins.
+# No `default = true` on purpose: an unmatched model must reach the Gemini
+# proxy untouched, so the proxy's own default model decides.
+[[rules]]
+match = ".*"
+param = "reasoning_effort"
+value = "high"

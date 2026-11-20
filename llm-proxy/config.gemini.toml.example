@@ -1,0 +1,57 @@
+# Configuration for gemini_web_proxy.py (example).
+#
+# Copy this file to `config.gemini.toml` and paste a logged-in session:
+#
+#     cp config.gemini.toml.example config.gemini.toml
+#
+# `config.gemini.toml` is git-ignored: it holds Google session cookies, which
+# are as sensitive as a password. Never commit them.
+
+listen_host = "127.0.0.1"
+listen_port = 6969
+
+# Gemini model name, alias or hex id. Empty lets the account pick its default.
+# Names are discovered per account; `--check` prints what yours offers
+# (e.g. gemini-3-flash, gemini-3-pro).
+model = "gemini-3-flash"
+
+# Required. Cookies of an account signed in to https://gemini.google.com.
+#
+# Get them from Chrome DevTools -> Application -> Cookies ->
+# https://gemini.google.com, then paste the values below:
+#
+#   __Secure-1PSID   (required)
+#   __Secure-1PSIDTS (optional, recommended)
+#
+# Use a dedicated Google account: the library rotates __Secure-1PSIDTS, which
+# can sign the same account out of a browser used elsewhere.
+secure_1psid = ""
+secure_1psidts = ""
+
+# Outbound HTTP proxy for reaching Google, e.g. "http://proxy:3128". Empty for
+# a direct connection.
+proxy = ""
+
+# TLS fingerprint impersonated when talking to Google. Update it if Google
+# starts rejecting requests.
+impersonate = "chrome145"
+
+# Per-request deadline in seconds. The web UI can be slow on long answers.
+timeout = 300
+
+# Keep generated chats out of the account's Gemini history. Cursor resends the
+# full message array on every turn, so server-side history is not needed.
+temporary = true
+
+# Always enable Gemini's extended-thinking mode. Requests that ask for
+# reasoning_effort "high" or "max" also enable it per request.
+extended_thinking = false
+
+# OpenAI function calling is not a web-UI feature.
+#   "off"    - drop the request's tools; replies stream normally.
+#   "prompt" - append the tool schemas to the prompt and parse one JSON tool
+#              call back out of the reply. Buffers each reply, because the
+#              decision to call a tool is only known at the end.
+tool_mode = "off"
+
+log = true
