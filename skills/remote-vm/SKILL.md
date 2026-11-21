@@ -20,7 +20,8 @@ the matching subskill:
 - **Connect and run commands** (SSH, tmux session `cursor`, run a command,
   copy a file, check status) →
   Read [remote-vm-access/SKILL.md](remote-vm-access/SKILL.md)
-- **Bootstrap a new VM** (virtiofs, tmux, X11, SSH keys, sudo, swap) →
+- **Bootstrap a new VM** (NFS/virtiofs shared directory, tmux, X11, SSH
+  keys, sudo, swap) →
   Read [remote-vm-config/SKILL.md](remote-vm-config/SKILL.md)
 - **Linux bridge on a host** (create a bridge, attach a NIC, inspect the
   bridge and the device it is built on) →
