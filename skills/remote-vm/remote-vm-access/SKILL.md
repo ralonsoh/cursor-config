@@ -96,14 +96,29 @@ the tmux-on-VM pattern (host Shell tool runs this block):
 ```bash
 rm -f /tmp/.cursor-vm-out
 sshpass -p '<password>' ssh -o StrictHostKeyChecking=no <user>@<ip> bash -s <<'REMOTE_SCRIPT' 2>&1 | tee /tmp/.cursor-vm-out
-tmux has-session -t cursor 2>/dev/null || tmux new-session -d -s cursor
+tmux has-session -t cursor 2>/dev/null || { tmux new-session -d -s cursor; sleep 2; }
 rm -f /tmp/.cursor-out
-tmux send-keys -t cursor '<REMOTE_COMMAND> 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
+tmux send-keys -t cursor 'set -o pipefail; { <REMOTE_COMMAND>; echo RC=$?; } 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
 for i in $(seq 1 300); do grep -q __CURSOR_DONE__ /tmp/.cursor-out 2>/dev/null && break; sleep 1; done
 cat /tmp/.cursor-out
 REMOTE_SCRIPT
 cat /tmp/.cursor-vm-out
 ```
+
+Two pitfalls of this pattern, learned the hard way:
+
+- **Session race:** `send-keys` right after `new-session` can lose the
+  keystrokes — the pane's shell is not reading input yet. Always
+  `sleep 2` (or more) between creating the session and sending keys.
+- **Multi-line commands do not work.** `tmux send-keys` executes each
+  embedded newline as a separate shell line; heredocs inside
+  `<REMOTE_COMMAND>` silently break. Flatten the command to a single
+  line (e.g. replace `tee <<EOF` heredocs with `printf ... | tee`).
+- **`__CURSOR_DONE__` alone does not mean success.** The marker is
+  appended even when the command fails, so a failing step looks
+  complete. Capture the exit code with `echo RC=$?` before the marker
+  (see the `set -o pipefail` and `{ ...; } 2>&1 | tee` form above) and
+  check it.
 
 ### Connection via jump host
 
@@ -113,9 +128,9 @@ When `jump_host` is set (from `vms.json` or SSH config `ProxyJump`), add
 ```bash
 rm -f /tmp/.cursor-vm-out
 sshpass -p '<password>' ssh -o StrictHostKeyChecking=no -J <jump_host> <user>@<ip> bash -s <<'REMOTE_SCRIPT' 2>&1 | tee /tmp/.cursor-vm-out
-tmux has-session -t cursor 2>/dev/null || tmux new-session -d -s cursor
+tmux has-session -t cursor 2>/dev/null || { tmux new-session -d -s cursor; sleep 2; }
 rm -f /tmp/.cursor-out
-tmux send-keys -t cursor '<REMOTE_COMMAND> 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
+tmux send-keys -t cursor 'set -o pipefail; { <REMOTE_COMMAND>; echo RC=$?; } 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
 for i in $(seq 1 300); do grep -q __CURSOR_DONE__ /tmp/.cursor-out 2>/dev/null && break; sleep 1; done
 cat /tmp/.cursor-out
 REMOTE_SCRIPT
@@ -132,9 +147,9 @@ Drop `sshpass` and optionally specify the key:
 ```bash
 rm -f /tmp/.cursor-vm-out
 ssh -o StrictHostKeyChecking=no -i <identity_file> -J <jump_host> <user>@<ip> bash -s <<'REMOTE_SCRIPT' 2>&1 | tee /tmp/.cursor-vm-out
-tmux has-session -t cursor 2>/dev/null || tmux new-session -d -s cursor
+tmux has-session -t cursor 2>/dev/null || { tmux new-session -d -s cursor; sleep 2; }
 rm -f /tmp/.cursor-out
-tmux send-keys -t cursor '<REMOTE_COMMAND> 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
+tmux send-keys -t cursor 'set -o pipefail; { <REMOTE_COMMAND>; echo RC=$?; } 2>&1 | tee /tmp/.cursor-out; echo __CURSOR_DONE__ >> /tmp/.cursor-out' Enter
 for i in $(seq 1 300); do grep -q __CURSOR_DONE__ /tmp/.cursor-out 2>/dev/null && break; sleep 1; done
 cat /tmp/.cursor-out
 REMOTE_SCRIPT
