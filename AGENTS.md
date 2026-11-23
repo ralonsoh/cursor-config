@@ -44,5 +44,50 @@ Change-Id: <generated or preserved Change-Id>
 ## Repository layout
 
 - `rules/` — global Cursor rules (`.md` files with YAML frontmatter).
+  One of them, `rules/git-identity.md`, is a **gitignored secret** (see
+  "Building `rules/git-identity.md`" below).
 - `skills/` — Cursor Agent Skills (`<name>/SKILL.md`).
 - `llm-proxy/` — LLM proxy configuration (secrets gitignored).
+
+
+## Building `rules/git-identity.md`
+
+`rules/git-identity.md` is a gitignored secret that holds the git commit
+identity (name and email). It is not part of the repository history;
+every clone or checkout must create it locally. If it is missing, build
+it as follows:
+
+1. Copy the template below into `rules/git-identity.md`.
+2. Replace `<NAME>` with the git author name and `<EMAIL>` with the
+   git author email (ask the user; never guess or invent them).
+3. Do NOT remove the file afterwards — every commit in this
+   repository depends on it for the author, committer, and
+   `Signed-off-by` values.
+
+Template:
+
+````
+---
+description: Git commit identity configuration
+alwaysApply: false
+---
+
+# Git Commit Identity
+
+When creating git commits, always set the **author** and **committer** to:
+
+- **Name:** `<NAME>`
+- **Email:** `<EMAIL>`
+
+Use `--author` for the author and `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL`
+environment variables for the committer:
+
+```
+GIT_COMMITTER_NAME="<NAME>" GIT_COMMITTER_EMAIL="<EMAIL>" \
+  git commit --author="<NAME> <<EMAIL>>"
+```
+````
+
+Verify after creating it: `git check-ignore rules/git-identity.md` must
+succeed (the file is a secret and must never be tracked), and
+`git status` must not list it.
