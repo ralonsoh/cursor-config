@@ -5,8 +5,9 @@ description: >-
   shared directory access with host UID matching, passwordless sudo
   bootstrap, tmux with mouse support, X11 tools, SSH key-based login for
   root and a non-root user, sshd X11 forwarding and password
-  authentication, home directory permissions, and swap disabling. Use when
-  the user asks to prepare, configure, or bootstrap a new VM from the
+  authentication, home directory permissions, swap disabling, and git +
+  git-review configuration. Use when the user asks to prepare, configure,
+  or bootstrap a new VM from the
   remote-vm inventory.
 ---
 
@@ -38,6 +39,7 @@ Checklist:
 - [ ] 5. sshd: X11 forwarding + password authentication
 - [ ] 6. Home directory traversable (755)
 - [ ] 7. Swap disabled
+- [ ] 8. git-review installed; .gitconfig and .gitignore in place
 ```
 
 ## 0. Bootstrap passwordless sudo (do this FIRST)
@@ -381,6 +383,98 @@ swapon --show            # must print nothing
 
 The swap file (commonly `/swap.img` or `/swapfile`) can be removed to free
 disk space once confirmed unused — ask the user first.
+
+## 8. git and git-review
+
+Install `git-review` (used to submit patches to Gerrit; it also pulls in
+`git` itself if not yet installed):
+
+```bash
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git-review
+```
+
+Configure the global `.gitconfig` and `.gitignore` for the default user
+(`stack` — replace with the actual non-root user if different). Both file
+contents are embedded below, so this step has **no external dependency**.
+
+**Git identity is private:** read the user name and email at run time
+from the local rule file
+[git-identity.md](../../../rules/git-identity.md) and substitute them
+for `<GIT_USER_NAME>` and `<GIT_USER_EMAIL>` in the `.gitconfig` below.
+Never hardcode the identity values in this skill or in any other
+committed file.
+
+Write both files into the user's home (unprivileged — no sudo needed;
+`d=$(getent passwd <user> | cut -d: -f6)` is the home directory):
+
+```bash
+d=$(getent passwd <user> | cut -d: -f6)
+tee $d/.gitignore > /dev/null <<'EOF'
+# Development
+.idea/
+.tmp/
+rah_*
+tempest.log
+
+# Cursor
+.cursor/
+.vscode/
+pyrightconfig.json
+EOF
+```
+
+```bash
+tee $d/.gitconfig > /dev/null <<'EOF'
+[user]
+        email = <GIT_USER_EMAIL>
+        name = <GIT_USER_NAME>
+[alias]
+        lg = log --graph --all --pretty=format:'%C(bold)%h%Creset -%C(auto)%d%Creset %s %C(green dim)(%cr)%Creset %C(ul)<%an>'
+[core]
+        excludesfile = /home/stack/.gitignore
+        editor = vim
+        compression = 9
+
+[http]
+        postBuffer = 524288000
+        sslverify = false
+[safe]
+        directory = /opt/stack/
+EOF
+```
+
+The heredoc form is for interactive use. When driving this through the
+tmux-on-VM pattern, `tmux send-keys` cannot send multi-line commands,
+and the `.gitconfig` alias line (single quotes plus `%C(...)`) makes a
+flattened `printf` fragile — instead, write the two files on the host
+(e.g. under `.tmp/`, from the contents above, with the identity already
+substituted) and scp them over (file transfers are the scp exception in
+remote-vm-access):
+
+```bash
+scp <path>/.gitconfig <path>/.gitignore <user>@<ip>:/tmp/
+d=$(getent passwd <user> | cut -d: -f6)
+mv /tmp/.gitconfig /tmp/.gitignore $d/
+chown <user>:<user> $d/.gitconfig $d/.gitignore
+```
+
+The `.gitconfig` points `core.excludesfile` at the absolute path
+`/home/stack/.gitignore` — when the user is not `stack`, adjust that
+path after writing the file:
+
+```bash
+sed -i "s|/home/stack/.gitignore|$d/.gitignore|" $d/.gitconfig
+```
+
+Do NOT place these files under `/opt/stack` — the shared directory is
+owned by the host user and `/opt/stack` is in `safe.directory` already;
+the git config is per-user and belongs in the user's home.
+
+Verify:
+
+```bash
+ssh <user>@<ip> 'git config --global --list && git-review --version'
+```
 
 ## Notes
 
