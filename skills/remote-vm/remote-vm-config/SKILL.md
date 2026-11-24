@@ -5,8 +5,9 @@ description: >-
   shared directory access with host UID matching, passwordless sudo
   bootstrap, tmux with mouse support, X11 tools, SSH key-based login for
   root and a non-root user, sshd X11 forwarding and password
-  authentication, home directory permissions, swap disabling, and git +
-  git-review configuration. Use when the user asks to prepare, configure,
+  authentication, home directory permissions, swap disabling, git +
+  git-review configuration, and a colored PS1 prompt for the non-root
+  user. Use when the user asks to prepare, configure,
   or bootstrap a new VM from the
   remote-vm inventory.
 ---
@@ -40,6 +41,7 @@ Checklist:
 - [ ] 6. Home directory traversable (755)
 - [ ] 7. Swap disabled
 - [ ] 8. git-review installed; .gitconfig and .gitignore in place
+- [ ] 9. PS1 prompt configured for the non-root user
 ```
 
 ## 0. Bootstrap passwordless sudo (do this FIRST)
@@ -474,6 +476,44 @@ Verify:
 
 ```bash
 ssh <user>@<ip> 'git config --global --list && git-review --version'
+```
+
+## 9. PS1 prompt for the non-root user
+
+Colored bash prompt for the non-root user (`stack` by default): green
+`user@host`, bold pale-blue working directory (256-color 81), and `\$`
+(`#` for root, `$` otherwise). Ubuntu's stock `.bashrc` already sets
+`PS1` (in a `case` block around `color_prompt`), so append at the end of
+the file to override it — later assignments win:
+
+```bash
+d=$(getent passwd <user> | cut -d: -f6)
+grep -q '38;5;81' $d/.bashrc || tee -a $d/.bashrc > /dev/null <<'EOF'
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;38;5;81m\]\w\[\033[00m\]\$ '
+EOF
+chown <user>:<user> $d/.bashrc
+```
+
+The heredoc form is for interactive use. When driving this through the
+tmux-on-VM pattern, flatten it to a single line. The `PS1` value contains
+single quotes, and `\u`, `\$` and `${debian_chroot...}` must stay
+literal, so double quotes are not an option — escape the inner single
+quotes with `'\''` instead:
+
+```bash
+d=$(getent passwd <user> | cut -d: -f6)
+grep -q '38;5;81' $d/.bashrc || \
+    echo 'PS1='\''${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;38;5;81m\]\w\[\033[00m\]\$ '\''' >> $d/.bashrc
+```
+
+The `grep` guard matches on the color code (`38;5;81`), not on `PS1` —
+the stock `.bashrc` already contains `PS1=` assignments, which would
+make a `PS1`-based check always match and skip the step.
+
+Verify:
+
+```bash
+ssh <user>@<ip> 'tail -1 ~/.bashrc'
 ```
 
 ## Notes
