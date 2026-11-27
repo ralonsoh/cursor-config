@@ -227,6 +227,17 @@ Verify: `head /opt/stack/neutron/setup.cfg` works and
 `echo test > /opt/stack/.write-test && rm /opt/stack/.write-test`
 succeeds.
 
+**DevStack clean and NFS ownership.** With `no_root_squash`, guest
+`sudo` in DevStack `clean.sh` removes or recreates paths on the share as
+uid **0** (e.g. `/opt/stack/data`, `/opt/stack/logs/screen`), often mode
+**775** with **other** read+execute only. The non-root user still owns
+the repo tree, but cannot create the stack log or build
+`/opt/stack/data/venv` on the next `./stack.sh`. This is not a bootstrap
+failure — fix ownership after each clean (see
+[devstack-debug](../../openstack-debug/devstack/SKILL.md) entry on
+root-owned share paths). Run the `chown` on the **NFS server** when the
+export lives on another host.
+
 ## 2. tmux with mouse support
 
 The remote-vm-access skill drives the VM through a tmux session, and the user

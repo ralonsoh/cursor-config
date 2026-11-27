@@ -10,7 +10,8 @@ description: >-
 # DevStack Debug
 
 Collection of real issues found while stacking/unstacking DevStack on the
-remote-vm VMs (Ubuntu, OVN backend, virtiofs-shared `/opt/stack`). Each
+remote-vm VMs (Ubuntu, OVN backend, virtiofs- or NFS-shared `/opt/stack`).
+Each
 entry: symptom → root cause → fix. Check the failed stack log
 (`/opt/stack/logs/screen/xstack.sh.log.*` or the `tee`d run log) to match
 the symptom, then apply the fix and re-stack.
@@ -138,7 +139,40 @@ side.
 Remember venvs on the shared directory are single-OS: never build on the
 host and run in the guest (or vice versa).
 
-## 7. Boot hangs 2 minutes in systemd-networkd-wait-online
+## 7. Immediate PermissionError on stack.sh after clean.sh (NFS share)
+
+**Symptom:** `./stack.sh` dies in the first seconds: `PermissionError:
+[Errno 13] Permission denied` in `tools/outfilter.py` opening
+`/opt/stack/logs/screen/xstack.sh.log.*`, or `python -m venv` failing on
+`/opt/stack/data/venv`. `clean.sh` itself exits 0.
+
+**Root cause:** on NFS mounts with `no_root_squash`, `clean.sh` runs
+`sudo rm -rf` on `/opt/stack/data`, `/opt/stack/logs/screen`, and
+related paths. Remaining or recreated directories on the export are
+**root-owned** (uid 0), mode **775**: user **stack** has only **other**
+`r-x` and cannot write logs or create the global venv. Typical after
+`clean.sh` then `./stack.sh` on ru26ovn1-style VMs
+(`nfs4` mount of a remote export).
+
+**Fix:** reset ownership on the **NFS server** (or wherever the export
+is stored), using the share owner's uid/gid — discover with
+`stat -c '%u %g' /opt/stack` on the server, then:
+
+```bash
+sudo chown -R <uid>:<gid> /opt/stack/data /opt/stack/logs \
+    /opt/stack/async /opt/stack/status
+```
+
+On the guest, verify before re-stacking:
+
+```bash
+touch /opt/stack/logs/screen/.write-test && rm /opt/stack/logs/screen/.write-test
+```
+
+Repeat after every `./clean.sh` when DevStack uses sudo on those paths
+under the shared export.
+
+## 8. Boot hangs 2 minutes in systemd-networkd-wait-online
 
 Not a stack.sh failure but hits the same VMs: an interface with no
 routable config (e.g. second NIC, dhcp disabled, nothing else) stays
